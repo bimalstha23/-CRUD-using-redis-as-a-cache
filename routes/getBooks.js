@@ -65,6 +65,13 @@ router.post("/", async (req, res) => {
 });
 
 /**
+ *  While fetching data by id check for cache hit
+ * if cache hit
+ *    get data from redis 
+ * else
+ *    fetch data by id from MongoDB,
+ *    set fetched data in redis,
+ *    and finally send the data to client,
  *
  */
 router.get("/:id", async (req, res) => {
@@ -75,6 +82,7 @@ router.get("/:id", async (req, res) => {
     // if not cache hit, get data from mongoDB and cache to redis
     if (!book) {
       book = await Book.findById(req.params.id);
+      //set fetched data in redis including expiry time in sec.
       await client.set(book.id, JSON.stringify(book), { EX: 5 });
     }
     res.json(book);
@@ -83,29 +91,34 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-//patch data by id
+/**
+ * when updating the data by id
+ * update the data in mongoDB as well as in redis.
+ */
+
 router.patch("/:id", async (req, res) => {
   try {
     const { title, author, genre } = req.body;
-
-    const book = await Book.findById(req.params.id);
-
-    book.title = title;
-    book.author = author;
-    book.genre = genre;
-
-    const updatedBook = await book.save();
+    //update the data in mongoDB
+    const updatedBook = await Book.findByIdAndUpdate(req.params.id, { title, author, genre }, { new: true });
+    //update the values in redis as well
     await client.set(updatedBook.id, JSON.stringify(updatedBook), { EX: 5 });
+    //send the updated data to client
     res.json(updatedBook);
   } catch (err) {
     res.send(err);
   }
 });
+/**
+ * while deleting the data from DB first delete the data from redis,
+ * and then delete it from mongo as well.
+ */
 
 router.delete("/:id", async (req, res) => {
   try {
-    console.log("del_id: ", req.params.id);
+    //delete the data from redis
     await client.del(req.params.id);
+    //delete the data from mongoDB
     console.log(await Book.findByIdAndDelete({ _id: req.params.id }));
 
     res.json({ message: "record deleted successfully" });
