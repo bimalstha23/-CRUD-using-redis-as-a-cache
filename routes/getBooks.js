@@ -21,7 +21,7 @@ router.get("/", async (req, res) => {
       return;
     }
 
-    // on cache miss fetch data from mongoDB.
+    // On cache miss, fetch data from mongoDB.
     // Sending all data is a bad practice,
     // so send only some limited data
     books = await Book.find().limit(10);
@@ -66,9 +66,9 @@ router.post("/", async (req, res) => {
 
 /**
  *  While fetching data by id check for cache hit
- * if cache hit
- *    get data from redis 
- * else
+ *  If cache hit
+ *    get data from redis
+ *  else
  *    fetch data by id from MongoDB,
  *    set fetched data in redis,
  *    and finally send the data to client,
@@ -92,15 +92,18 @@ router.get("/:id", async (req, res) => {
 });
 
 /**
- * when updating the data by id
+ * When updating the data by id
  * update the data in mongoDB as well as in redis.
  */
-
 router.patch("/:id", async (req, res) => {
   try {
     const { title, author, genre } = req.body;
     //update the data in mongoDB
-    const updatedBook = await Book.findByIdAndUpdate(req.params.id, { title, author, genre }, { new: true });
+    const updatedBook = await Book.findByIdAndUpdate(
+      req.params.id,
+      { title, author, genre },
+      { new: true }
+    );
     //update the values in redis as well
     await client.set(updatedBook.id, JSON.stringify(updatedBook), { EX: 5 });
     //send the updated data to client
@@ -109,15 +112,16 @@ router.patch("/:id", async (req, res) => {
     res.send(err);
   }
 });
+
 /**
- * while deleting the data from DB first delete the data from redis,
+ * While deleting the data from DB first delete the data from redis,
  * and then delete it from mongo as well.
  */
-
 router.delete("/:id", async (req, res) => {
   try {
     //delete the data from redis
     await client.del(req.params.id);
+
     //delete the data from mongoDB
     console.log(await Book.findByIdAndDelete({ _id: req.params.id }));
 
