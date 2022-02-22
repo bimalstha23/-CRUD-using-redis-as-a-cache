@@ -1,0 +1,23 @@
+{
+  "name": "crud-node-express-mongo-redis",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "prod": "node server.js",
+    "watch": "nodemon server --ignore public/",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm run watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.26.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "mongoose": "^6.2.2",
+    "nodemon": "^2.0.15",
+    "redis": "^4.0.4",
+    "response-time": "^2.3.2"
+  }
+}
