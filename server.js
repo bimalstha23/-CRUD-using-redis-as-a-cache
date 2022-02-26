@@ -11,7 +11,7 @@ app.get("/", (req, res) => {
   res.send("server is Running");
 });
 
-const booksRouter = require("./routes/getBooks");
+const booksRouter = require("./routes/book.route");
 app.use("/books", booksRouter);
 
 app.listen(port, () => {
